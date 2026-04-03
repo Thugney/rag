@@ -1,0 +1,34 @@
+db:
+  repository: ghcr.io/aquasecurity/trivy-db
+  skip-update: false
+
+cache:
+  dir: /tmp/trivy
+
+security-checks:
+  - vuln
+  - secret
+  - config
+
+severity:
+  - CRITICAL
+  - HIGH
+  - MEDIUM
+
+ignore-unfixed: true
+
+vuln-type:
+  - os
+  - library
+
+ignore-policy: .trivyignore
+
+format: table
+
+output: trivy-results.sarif
+
+exit-code: 1
+
+no-progress: false
+
+timeout: 5m

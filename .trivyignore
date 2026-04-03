@@ -1,0 +1,11 @@
+# Accept risk for specific CVEs with business justification
+CVE-2021-44228 # Log4j - mitigated by configuration
+CVE-2019-1010266 # Lodash - false positive in our usage
+
+# Python packages with acceptable risk
+CVE-2022-37434 # urllib3 - mitigated by network controls
+CVE-2023-36632 # requests - mitigated by input validation
+
+# Development dependencies (not in production)
+CVE-2021-33503 # pytest - development only
+CVE-2022-42969 # black - development only

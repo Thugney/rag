@@ -1,0 +1,82 @@
+system:
+  chunk_size: 256
+  overlap: 64
+  top_k: 5
+
+uploads:
+  max_file_size_mb: 250
+
+indexing:
+  batch_size: 16
+  max_workers: 2
+
+embedding:
+  # Choose embedding provider: "huggingface" or "ollama"
+  provider: "ollama"
+  
+  # HuggingFace model (used when provider: "huggingface")
+  huggingface_model: "all-MiniLM-L6-v2"
+  
+  # Ollama model (used when provider: "ollama")  
+  ollama_model: "mxbai-embed-large:latest" 
+
+llm:
+  # Switched to the cloud API provider
+  provider: "deepseek"
+  model: "deepseek-chat" # Official model name for the API
+  temperature: 0.2
+  max_tokens: 4096
+
+vector_store:
+  backend: "faiss"
+  persist_path: "./vector_db"
+
+advanced:
+  enable_fusion: true
+  enable_rewriting: true
+  enable_tools: true
+  fusion_queries: 3
+  enable_hybrid_search: true
+  hybrid_weights:
+    vector: 0.6
+    bm25: 0.4
+  metadata_filters:
+    enable: false
+    fields: []
+  query_expansion:
+    enable: true
+    max_variants: 3
+    techniques:
+      llm_variants:
+        enable: true
+      synonym_expansion:
+        enable: true
+      entity_recognition:
+        enable: true
+      contextual_broadening:
+        enable: true
+    metrics:
+      enable: true
+  reranking:
+    enable: true
+    cross_encoder:
+      enable: true
+      model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+      batch_size: 32
+    mmr:
+      enable: true
+      lambda_param: 0.5
+    position_decay:
+      enable: true
+      decay_rate: 0.9
+    source_authority:
+      enable: true
+      weights:
+        default: 1.0
+        high: 1.5
+        low: 0.5
+    latency_monitoring:
+      enable: true
+
+cache:
+  max_size: 1000

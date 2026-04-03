@@ -1,0 +1,59 @@
+title = "RAGagument Secret Detection"
+
+[[rules]]
+id = "ragagument-api-key"
+description = "RAGagument API Key"
+regex = '''(?i)(deepseek|ollama)[_\-]?api[_\-]?key["']?\s*[:=]\s*["']([a-zA-Z0-9_\-]{32,})["']'''
+keywords = ["api", "key", "deepseek", "ollama"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)api[_\-]?key["']?\s*[:=]\s*["']([a-zA-Z0-9_\-]{32,})["']'''
+keywords = ["api", "key"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''(?i)aws[_\-]?access[_\-]?key[_\-]?id["']?\s*[:=]\s*["']([A-Z0-9]{20})["']'''
+keywords = ["aws", "access", "key"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJhbGciOiJ[.,
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN [A-Z ]* PRIVATE KEY-----'''
+keywords = ["private", "key"]
+
+[[rules]]
+id = "slack-webhook"
+description = "Slack Webhook"
+regex = '''https://hooks\.slack\.com/services/[A-Z0-9]+/[A-Z0-9]+/[a-zA-Z0-9]+'''
+keywords = ["slack", "webhook"]
+
+[allowlist]
+description = "Allowlisted files and paths"
+files = [
+    '''\.env\.example$''',
+    '''test.*\.py$''',
+    '''.*\.test\.py$''',
+    '''.*_test\.py$''',
+    '''docs/.*''',
+    '''README\.md$''',
+    '''\.gitignore$''',
+    '''\.dockerignore$''',
+    '''Makefile$''',
+    '''requirements.*\.txt$''',
+]
+
+paths = [
+    '''test''',
+    '''tests''',
+    '''docs''',
+    '''examples''',
+    '''scripts''',
+]
