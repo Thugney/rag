@@ -21,15 +21,26 @@ embedding:
   ollama_model: "mxbai-embed-large:latest" 
 
 llm:
-  # Switched to the cloud API provider
+  # Choose llm provider: "deepseek", "openai", or "openai_compatible"
   provider: "deepseek"
-  model: "deepseek-chat" # Official model name for the API
+  model: "deepseek-chat"
   temperature: 0.2
   max_tokens: 4096
+  # Optional overrides for OpenAI-compatible providers
+  api_key_env: "DEEPSEEK_API_KEY"
+  base_url: "https://api.deepseek.com/v1"
 
 vector_store:
-  backend: "faiss"
+  # Active backend. Qdrant is now the default runtime backend; FAISS remains supported for fallback.
+  backend: "qdrant"
   persist_path: "./vector_db"
+  qdrant:
+    path: "./vector_db/qdrant"
+    collection_name: "ragagument"
+    url: ""
+    api_key_env: "QDRANT_API_KEY"
+    prefer_grpc: false
+    timeout: 30
 
 advanced:
   enable_fusion: true
@@ -41,8 +52,23 @@ advanced:
     vector: 0.6
     bm25: 0.4
   metadata_filters:
-    enable: false
-    fields: []
+    enable: true
+    fields:
+      - project_id
+      - document_id
+      - original_filename
+      - parser_name
+      - content_type
+      - structural_role
+      - chunk_strategy
+      - page_number
+      - sheet_name
+      - sheet_index
+      - row_start
+      - row_end
+      - column_count
+      - layout_mode
+      - ocr_source
   query_expansion:
     enable: true
     max_variants: 3

@@ -1,0 +1,87 @@
+{
+  "name": "multimodal-retrieval-eval",
+  "description": "Regression dataset for OCR images, scanned PDFs, XLSX spreadsheets, CSV tables, and structured metadata filters.",
+  "corpus": [
+    {
+      "document_id": "invoice-image",
+      "path": "fixtures/multimodal/invoice_ocr.jpg",
+      "metadata": {
+        "fixture_type": "ocr_image"
+      }
+    },
+    {
+      "document_id": "invoice-scan",
+      "path": "fixtures/multimodal/invoice_scan.pdf",
+      "metadata": {
+        "fixture_type": "scanned_pdf"
+      }
+    },
+    {
+      "document_id": "risk-register-xlsx",
+      "path": "fixtures/multimodal/risk_register.xlsx",
+      "metadata": {
+        "fixture_type": "xlsx_table"
+      }
+    },
+    {
+      "document_id": "security-controls-csv",
+      "path": "fixtures/multimodal/security_controls.csv",
+      "metadata": {
+        "fixture_type": "csv_table"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "query_id": "invoice-image-total",
+      "query": "What is the total due on invoice 4821?",
+      "metadata_filter": {
+        "content_type": "image",
+        "parser_name": {
+          "eq": "image"
+        }
+      },
+      "relevant_document_ids": ["invoice-image"],
+      "expected_answer_contains": ["NOK 120000"]
+    },
+    {
+      "query_id": "invoice-scan-due-date",
+      "query": "When is payment due on the scanned invoice?",
+      "metadata_filter": {
+        "content_type": "image",
+        "parser_name": {
+          "eq": "pdf"
+        }
+      },
+      "relevant_document_ids": ["invoice-scan"],
+      "expected_answer_contains": ["14 April 2026"]
+    },
+    {
+      "query_id": "risk-register-owner",
+      "query": "Who owns the MFA rollout in the risk register?",
+      "metadata_filter": {
+        "content_type": "table",
+        "sheet_name": {
+          "eq": "Risk Register"
+        },
+        "row_start": {
+          "gte": 2
+        }
+      },
+      "relevant_document_ids": ["risk-register-xlsx"],
+      "expected_answer_contains": ["Alice"]
+    },
+    {
+      "query_id": "blocked-control-csv",
+      "query": "Which control is blocked in the security controls table?",
+      "metadata_filter": {
+        "content_type": "table",
+        "row_start": {
+          "gte": 2
+        }
+      },
+      "relevant_document_ids": ["security-controls-csv"],
+      "expected_answer_contains": ["Third-party review"]
+    }
+  ]
+}

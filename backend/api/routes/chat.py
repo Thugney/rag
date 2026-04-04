@@ -12,6 +12,7 @@ def query_chat(request: ChatRequest) -> ChatResponse:
     service = get_rag_application()
     result = service.query(
         query=request.query,
+        project_id=request.project_id,
         session_id=request.session_id,
         top_k=request.top_k,
         use_fusion=request.use_fusion,

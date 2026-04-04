@@ -1,0 +1,9 @@
+{
+  "generated_at": null,
+  "fixtures": {
+    "invoice_ocr_image": "invoice_ocr.jpg",
+    "invoice_scan_pdf": "invoice_scan.pdf",
+    "risk_register_xlsx": "risk_register.xlsx",
+    "security_controls_csv": "security_controls.csv"
+  }
+}
