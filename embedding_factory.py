@@ -62,8 +62,7 @@ class EmbeddingFactory:
             if self.provider == "huggingface":
                 embedding = self.model.encode(prepared_text, convert_to_numpy=True)
             elif self.provider == "ollama":
-                response = self.client.embeddings(model=self.ollama_model, prompt=prepared_text)
-                embedding = np.array(response['embedding'], dtype=np.float32)
+                embedding = self._embed_with_ollama(prepared_text)
             
             # Normalize the embedding
             norm = np.linalg.norm(embedding)
@@ -91,8 +90,7 @@ class EmbeddingFactory:
             embeddings = []
             for text in texts_to_embed:
                 prepared_text = self._prepare_text(text)
-                response = self.client.embeddings(model=self.ollama_model, prompt=prepared_text)
-                embeddings.append(np.array(response['embedding'], dtype=np.float32))
+                embeddings.append(self._embed_with_ollama(prepared_text))
             embeddings = np.array(embeddings)
         
         # Normalize and assign embeddings back to chunks
@@ -133,3 +131,30 @@ class EmbeddingFactory:
             self.provider,
         )
         return truncated
+
+    def _embed_with_ollama(self, text: str) -> np.ndarray:
+        prepared_text = text
+        attempt_words = prepared_text.split()
+
+        while True:
+            try:
+                response = self.client.embeddings(model=self.ollama_model, prompt=prepared_text)
+                return np.array(response['embedding'], dtype=np.float32)
+            except Exception as exc:
+                message = str(exc).lower()
+                if "input length exceeds the context length" not in message:
+                    raise
+
+                if len(attempt_words) <= 32:
+                    raise
+
+                next_limit = max(32, int(len(attempt_words) * 0.8))
+                if next_limit >= len(attempt_words):
+                    next_limit = len(attempt_words) - 1
+
+                attempt_words = attempt_words[:next_limit]
+                prepared_text = " ".join(attempt_words)
+                logger.warning(
+                    "Retrying Ollama embedding with %s words after a context-length failure.",
+                    len(attempt_words),
+                )

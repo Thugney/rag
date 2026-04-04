@@ -102,7 +102,7 @@ a:focus-visible {
   top: 0;
   height: 100vh;
   display: grid;
-  grid-template-rows: auto auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 16px;
   padding: 20px 18px;
   background:
@@ -172,6 +172,7 @@ a:focus-visible {
 }
 
 .primary-button,
+.secondary-button,
 .toolbar-button,
 .icon-button,
 .text-button,
@@ -201,6 +202,24 @@ a:focus-visible {
   background: #f0ece2;
 }
 
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-inverse);
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(198, 166, 89, 0.42);
+}
+
 .search-field,
 .field-input {
   display: flex;
@@ -211,6 +230,15 @@ a:focus-visible {
   background: rgba(255, 255, 255, 0.04);
   padding: 12px 14px;
   color: rgba(246, 245, 241, 0.76);
+}
+
+.search-field {
+  padding: 10px 12px;
+  min-height: 46px;
+}
+
+.search-field input {
+  font-size: 14px;
 }
 
 .search-field input,
@@ -247,7 +275,6 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  grid-row: 4;
   padding: 10px 0 0;
   border: 0;
   border-top: 1px solid var(--line-strong);
@@ -258,22 +285,29 @@ a:focus-visible {
   text-transform: uppercase;
 }
 
+.left-rail__content {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding-right: 4px;
+}
+
 .section-toggle__label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
+.project-list,
 .session-list {
   display: grid;
-  grid-row: 5;
   gap: 10px;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
   align-content: start;
 }
 
+.project-card,
 .session-card,
 .empty-rail-card {
   width: 100%;
@@ -286,7 +320,9 @@ a:focus-visible {
 }
 
 .session-card:hover,
-.session-card.active {
+.session-card.active,
+.project-card:hover,
+.project-card.active {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(198, 166, 89, 0.4);
 }
@@ -298,10 +334,49 @@ a:focus-visible {
   margin-bottom: 6px;
 }
 
+.project-card__description,
+.project-card__meta {
+  display: block;
+  font-size: 12px;
+  color: rgba(246, 245, 241, 0.62);
+}
+
+.project-card__description {
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+
 .session-card__time,
 .empty-rail-card {
   color: rgba(246, 245, 241, 0.6);
   font-size: 12px;
+}
+
+.project-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.project-form__description textarea {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-inverse);
+  padding: 12px 14px;
+}
+
+.project-form__description textarea::placeholder {
+  color: rgba(246, 245, 241, 0.42);
+}
+
+.project-form__actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .left-rail__footer {
@@ -422,6 +497,20 @@ a:focus-visible {
   width: 42px;
   height: 42px;
   padding: 0;
+}
+
+.icon-button--small {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-button--danger {
+  color: var(--danger);
+}
+
+.icon-button--danger:hover {
+  border-color: rgba(166, 67, 47, 0.35);
+  background: rgba(166, 67, 47, 0.08);
 }
 
 .mobile-only {
@@ -581,6 +670,7 @@ a:focus-visible {
 
 .settings-field input,
 .settings-field select,
+.settings-field textarea,
 .settings-input {
   width: 100%;
   border: 1px solid var(--line);
@@ -591,8 +681,15 @@ a:focus-visible {
 }
 
 .settings-field input,
-.settings-field select {
+.settings-field select,
+.settings-field textarea {
   padding: 12px 14px;
+}
+
+.settings-field textarea {
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
 }
 
 .settings-input {
@@ -636,6 +733,21 @@ a:focus-visible {
   background: #f5f0e3;
 }
 
+.settings-action.danger {
+  color: var(--danger);
+}
+
+.settings-action.danger:hover {
+  border-color: rgba(166, 67, 47, 0.35);
+  background: rgba(166, 67, 47, 0.08);
+}
+
+.settings-action:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .settings-metric {
   gap: 6px;
   padding: 12px;
@@ -674,6 +786,43 @@ a:focus-visible {
 .drawer-card__meta {
   color: var(--text-muted);
   opacity: 0.86;
+}
+
+.drawer-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.drawer-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 31, 30, 0.08);
+  background: rgba(244, 241, 232, 0.9);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.drawer-card__alert {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(166, 67, 47, 0.2);
+  background: rgba(166, 67, 47, 0.08);
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .muted-card {
@@ -872,7 +1021,7 @@ a:focus-visible {
   position: absolute;
   left: 16px;
   bottom: calc(100% + 12px);
-  z-index: 5;
+  z-index: 40;
   flex-direction: column;
   gap: 8px;
   min-width: 260px;
@@ -942,6 +1091,7 @@ a:focus-visible {
 }
 
 .composer-statusbar {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
@@ -990,6 +1140,24 @@ a:focus-visible {
 
 .send-button:disabled {
   opacity: 0.5;
+}
+
+.status-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: min(920px, calc(100% - 48px));
+  margin: 10px auto 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.status-banner.success {
+  color: var(--success);
+}
+
+.status-banner.error {
+  color: var(--danger);
 }
 
 .spin {

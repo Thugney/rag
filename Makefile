@@ -1,4 +1,4 @@
-.PHONY: help dev up down logs clean api-dev frontend-dev stack-dev build build-api build-frontend health-api health-frontend shell-backend shell-frontend
+.PHONY: help dev up down logs clean api-dev frontend-dev stack-dev build build-api build-frontend health-api health-frontend shell-backend shell-frontend eval-retrieval
 
 help: ## Show available commands
 	@echo "RAGagument"
@@ -12,6 +12,7 @@ help: ## Show available commands
 	@echo "  api-dev         Start the FastAPI backend locally"
 	@echo "  frontend-dev    Start the Next.js frontend locally"
 	@echo "  stack-dev       Print the local two-terminal workflow"
+	@echo "  eval-retrieval  Run the sample retrieval benchmark"
 	@echo ""
 	@echo "Build:"
 	@echo "  build           Build both dev images"
@@ -66,3 +67,6 @@ shell-backend: ## Open a shell in the backend container
 
 shell-frontend: ## Open a shell in the frontend container
 	docker compose -f docker-compose.dev.yml exec frontend /bin/sh
+
+eval-retrieval: ## Run the sample retrieval benchmark
+	python scripts/run_retrieval_eval.py --dataset evals/sample_retrieval_eval.json

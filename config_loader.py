@@ -24,10 +24,24 @@ class Config:
                 'model': 'nomic-embed-text', 'dimension': 768
             },
             'llm': {
-                'model': 'deepseek-v3', 'temperature': 0.2, 'max_tokens': 4096
+                'provider': 'deepseek',
+                'model': 'deepseek-v3',
+                'temperature': 0.2,
+                'max_tokens': 4096,
+                'api_key_env': 'DEEPSEEK_API_KEY',
+                'base_url': 'https://api.deepseek.com/v1',
             },
             'vector_store': {
-                'backend': 'faiss', 'persist_path': './vector_db'
+                'backend': 'qdrant',
+                'persist_path': './vector_db',
+                'qdrant': {
+                    'path': './vector_db/qdrant',
+                    'collection_name': 'ragagument',
+                    'url': '',
+                    'api_key_env': 'QDRANT_API_KEY',
+                    'prefer_grpc': False,
+                    'timeout': 30,
+                },
             },
             'advanced': {
                 'enable_fusion': True, 'enable_rewriting': True, 'enable_tools': True, 'fusion_queries': 3

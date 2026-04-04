@@ -1,0 +1,412 @@
+{
+  "initiative": {
+    "id": "all_type_rag",
+    "name": "All-Type RAG Upgrade",
+    "status": "done",
+    "current_tier": "tier_2_mature",
+    "target_tier": "tier_3_multimodal",
+    "source_reference": "https://github.com/HKUDS/RAG-Anything",
+    "goal": "Upgrade the current text-first RAG system into a structured, multimodal-capable document system that can ingest text, scanned PDFs, images, tables, and spreadsheets with reliable retrieval and source grounding.",
+    "tracking_notes": [
+      "Use this file as the execution tracker for the all-type RAG push.",
+      "Do not mark Tier 3 complete until parser-layer, OCR, spreadsheet ingestion, and multimodal retrieval metadata are proven on real documents.",
+      "Qdrant, retrieval eval, and retrieval cleanup are groundwork, not the finish line."
+    ]
+  },
+  "tasks": [
+    {
+      "id": "ATR-001",
+      "title": "Retrieval baseline and evaluation harness",
+      "status": "done",
+      "priority": "high",
+      "phase": "foundation",
+      "summary": "Benchmark retrieval quality before parser and multimodal changes.",
+      "why": "Tier 3 work must be measured against a stable retrieval baseline.",
+      "depends_on": [],
+      "deliverables": [
+        "Repeatable retrieval benchmark",
+        "Sample dataset and metrics",
+        "Profile comparison for vector, hybrid, rerank, and query-transform"
+      ],
+      "acceptance_criteria": [
+        "Benchmark runs from repo scripts",
+        "Metrics include hit@k, recall@k, MRR, and nDCG",
+        "Results are documented in repo docs"
+      ],
+      "files": [
+        "scripts/run_retrieval_eval.py",
+        "evals/sample_retrieval_eval.json",
+        "evals/README.md"
+      ]
+    },
+    {
+      "id": "ATR-002",
+      "title": "Vector backend upgrade to Qdrant",
+      "status": "done",
+      "priority": "high",
+      "phase": "foundation",
+      "summary": "Replace FAISS-only runtime dependency with a vector-store seam and active Qdrant backend.",
+      "why": "All-type RAG will need stronger persistence and metadata handling than FAISS-only local files.",
+      "depends_on": [
+        "ATR-001"
+      ],
+      "deliverables": [
+        "Vector-store abstraction",
+        "Qdrant implementation",
+        "Config-driven backend selection"
+      ],
+      "acceptance_criteria": [
+        "App starts with vector_store.backend=qdrant",
+        "Existing indexed docs can be restored into the new backend",
+        "Retrieval benchmark runs on Qdrant"
+      ],
+      "files": [
+        "vector_store.py",
+        "backend/services/rag_service.py",
+        "config.yaml"
+      ]
+    },
+    {
+      "id": "ATR-003",
+      "title": "Parser-layer abstraction before chunking",
+      "status": "done",
+      "priority": "critical",
+      "phase": "parser_layer",
+      "summary": "Introduce a parser contract that outputs structured content blocks instead of immediately collapsing everything into plain text.",
+      "why": "This is the gate for OCR, tables, images, Excel, and layout-aware chunking.",
+      "depends_on": [
+        "ATR-001",
+        "ATR-002"
+      ],
+      "deliverables": [
+        "Parser interface and structured block schema",
+        "Document element model for text, table, image, sheet, heading, and page blocks",
+        "Refactor upload/index flow to parse first, chunk second"
+      ],
+      "acceptance_criteria": [
+        "Chunking no longer depends on raw file-type branching only",
+        "Parsed blocks preserve source metadata like page number, section, and content type",
+        "Current PDF, DOCX, MD, and TXT flows still work through the new parser seam"
+      ],
+      "progress_notes": [
+        "Structured parser and element models are now live in chunker.py.",
+        "Document records and source traces now expose parser, content-type, and structural-role metadata.",
+        "TXT, Markdown, DOCX, and PDF flows have been validated through the new parser seam.",
+        "The parser seam is now the stable base for OCR, spreadsheets, and multimodal block handling."
+      ],
+      "files": [
+        "chunker.py",
+        "backend/services/rag_service.py",
+        "backend/api/schemas.py",
+        "frontend/lib/api.ts",
+        "frontend/components/app-shell.tsx",
+        "scripts/run_retrieval_eval.py"
+      ]
+    },
+    {
+      "id": "ATR-004",
+      "title": "Structured PDF parser for layout-aware extraction",
+      "status": "done",
+      "priority": "critical",
+      "phase": "parser_layer",
+      "summary": "Upgrade PDF ingestion from plain text extraction to layout-aware block extraction.",
+      "why": "Enterprise PDFs are rarely just linear text; headings, captions, page structure, and embedded elements matter.",
+      "depends_on": [
+        "ATR-003"
+      ],
+      "deliverables": [
+        "Improved PDF parser path",
+        "Structured page and block metadata",
+        "Graceful fallback when rich parsing is unavailable"
+      ],
+      "acceptance_criteria": [
+        "PDF parsing preserves page boundaries",
+        "Headings and structural blocks are represented explicitly",
+        "Chunks can reference the original PDF page or section"
+      ],
+      "progress_notes": [
+        "PdfDocumentParser now uses PyPDF2 visitor callbacks to collect positioned text fragments and page rectangles.",
+        "PDF text is grouped into lines and layout-aware blocks instead of collapsing directly into plain text.",
+        "PDF blocks now preserve page-level geometry and block metadata and fall back to plain-text extraction if visitor-based parsing fails.",
+        "A generated PDF smoke test verified explicit heading/body block extraction and page-aware chunk metadata."
+      ],
+      "files": [
+        "chunker.py",
+        "backend/services/rag_service.py",
+        "config.yaml"
+      ]
+    },
+    {
+      "id": "ATR-005",
+      "title": "OCR support for scanned PDFs and image-only documents",
+      "status": "done",
+      "priority": "critical",
+      "phase": "multimodal_ingestion",
+      "summary": "Add OCR-capable parsing for image-only PDFs and standalone image documents.",
+      "why": "Without OCR, scanned enterprise documents are effectively invisible to the system.",
+      "depends_on": [
+        "ATR-003",
+        "ATR-004"
+      ],
+      "deliverables": [
+        "OCR pipeline for scanned PDFs",
+        "Image document ingestion path",
+        "OCR confidence and provenance metadata"
+      ],
+      "acceptance_criteria": [
+        "Image-only PDF pages produce indexed text blocks",
+        "OCR output retains page or image references",
+        "Failed OCR is visible through processing status and errors"
+      ],
+      "progress_notes": [
+        "Added a Windows built-in OCR path through powershell.exe and Windows.Media.Ocr, without adding a new Python dependency.",
+        "Standalone image files now parse through an OCR-backed image parser.",
+        "Text-layer-empty PDF pages now fall back to OCR on extracted embedded page images.",
+        "Validation passed on a generated OCR image and a scanned-style PDF that contained only an embedded JPEG."
+      ],
+      "files": [
+        "chunker.py",
+        "backend/services/rag_service.py",
+        "backend/api/schemas.py",
+        "backend/api/routes/documents.py"
+      ]
+    },
+    {
+      "id": "ATR-006",
+      "title": "Spreadsheet ingestion for XLSX and CSV-like structured files",
+      "status": "done",
+      "priority": "high",
+      "phase": "multimodal_ingestion",
+      "summary": "Add spreadsheet parsing with sheet, column, and row-aware metadata.",
+      "why": "Excel support is part of the all-type RAG promise and currently missing.",
+      "depends_on": [
+        "ATR-003"
+      ],
+      "deliverables": [
+        "XLSX parser path",
+        "Sheet-level and table-level content blocks",
+        "Chunk metadata for workbook, sheet, and table ranges"
+      ],
+      "acceptance_criteria": [
+        "Users can upload XLSX documents successfully",
+        "Indexed content can cite workbook and sheet context",
+        "Retrieval can return spreadsheet-derived chunks with clear provenance"
+      ],
+      "progress_notes": [
+        "Added a spreadsheet parser with no new dependency by reading XLSX as ZIP/XML directly.",
+        "Added delimited table parsing for CSV and TSV files with the standard library.",
+        "Spreadsheet blocks now preserve workbook, sheet, row-range, and column-count metadata.",
+        "Validation passed on generated XLSX and CSV samples."
+      ],
+      "files": [
+        "chunker.py",
+        "backend/services/rag_service.py",
+        "frontend/components/app-shell.tsx",
+        "backend/api/routes/documents.py"
+      ]
+    },
+    {
+      "id": "ATR-007",
+      "title": "Image, figure, and table-aware content blocks",
+      "status": "done",
+      "priority": "high",
+      "phase": "multimodal_ingestion",
+      "summary": "Represent images, figures, and tables as first-class parsed elements instead of letting them disappear into text extraction.",
+      "why": "This is the bridge between parser upgrades and later multimodal retrieval.",
+      "depends_on": [
+        "ATR-003",
+        "ATR-004"
+      ],
+      "deliverables": [
+        "Content-type metadata for text, table, image, and figure blocks",
+        "Separate chunking policy for structural versus narrative content",
+        "Source serialization that exposes block type"
+      ],
+      "acceptance_criteria": [
+        "Retrieved sources show content type metadata",
+        "Table and image-derived blocks are distinguishable from plain text blocks",
+        "Chunking rules can vary by block type"
+      ],
+      "progress_notes": [
+        "Chunking is now modality-aware instead of treating all parsed elements like generic prose.",
+        "Headings are kept atomic, table-derived blocks preserve row boundaries, and OCR or image-derived blocks preserve line grouping.",
+        "Chunk metadata now records chunk_strategy alongside parser, content type, and structural role.",
+        "Validation passed on heading, spreadsheet-table, and OCR-backed image samples."
+      ],
+      "files": [
+        "chunker.py",
+        "retriever.py",
+        "backend/services/rag_service.py"
+      ]
+    },
+    {
+      "id": "ATR-008",
+      "title": "Metadata-rich chunk schema and retrieval filters",
+      "status": "done",
+      "priority": "high",
+      "phase": "retrieval_upgrade",
+      "summary": "Upgrade chunk metadata and retrieval filtering so new content types remain explorable and debuggable.",
+      "why": "All-type ingestion becomes unmanageable if chunk metadata cannot express modality, provenance, and structure.",
+      "depends_on": [
+        "ATR-003",
+        "ATR-007"
+      ],
+      "deliverables": [
+        "Chunk metadata keys for modality and structure",
+        "Retrieval-side support for richer metadata",
+        "Source serialization updates for UI and APIs"
+      ],
+      "acceptance_criteria": [
+        "Metadata filter fields include structured document attributes",
+        "Evaluation can target specific content types later",
+        "Source traces show page, sheet, or block identity where available"
+      ],
+      "progress_notes": [
+        "Retriever metadata filters now support operator-style conditions such as eq, in, gte, lte, and between.",
+        "The active Qdrant backend now translates supported metadata filters into payload filters during vector search.",
+        "Config now explicitly allows filtering by parser, content type, structure, page, sheet, row-range, chunk strategy, and OCR/layout metadata.",
+        "Validation passed on a temporary Qdrant corpus using structured filters for table and OCR-image retrieval."
+      ],
+      "files": [
+        "retriever.py",
+        "vector_store.py",
+        "backend/services/rag_service.py",
+        "backend/api/routes/chat.py"
+      ]
+    },
+    {
+      "id": "ATR-009",
+      "title": "Multimodal evaluation dataset and regression suite",
+      "status": "done",
+      "priority": "high",
+      "phase": "validation",
+      "summary": "Expand the evaluation harness to cover scanned PDFs, image-heavy documents, and spreadsheets.",
+      "why": "Tier 3 claims are meaningless without representative evaluation data.",
+      "depends_on": [
+        "ATR-005",
+        "ATR-006",
+        "ATR-007",
+        "ATR-008"
+      ],
+      "deliverables": [
+        "Evaluation corpus with non-text-heavy documents",
+        "Gold queries for tables, images, OCR, and spreadsheets",
+        "Regression path for parser-level changes"
+      ],
+      "acceptance_criteria": [
+        "Benchmark includes multimodal or structured document cases",
+        "Tier 3 work can be measured against the baseline harness",
+        "Parser regressions are visible in evaluation output"
+      ],
+      "progress_notes": [
+        "Added generated multimodal fixtures for OCR image, scanned PDF, XLSX, and CSV regression cases.",
+        "Added a multimodal dataset with query-level metadata filters so retrieval can target specific modalities and structures.",
+        "Added a multimodal evaluation suite that generates fixtures, runs parser smoke checks, and then executes the retrieval benchmark.",
+        "Validation passed on the multimodal dataset for vector_only and hybrid retrieval profiles."
+      ],
+      "files": [
+        "scripts/run_retrieval_eval.py",
+        "evals/",
+        "TESTING_GUIDE.md"
+      ]
+    },
+    {
+      "id": "ATR-010",
+      "title": "Upload and workspace UX for all-type documents",
+      "status": "done",
+      "priority": "medium",
+      "phase": "product_surface",
+      "summary": "Expose parse status, content types, and richer library states in the frontend.",
+      "why": "Users need to know whether a document was text-parsed, OCR-parsed, spreadsheet-parsed, or partially failed.",
+      "depends_on": [
+        "ATR-005",
+        "ATR-006",
+        "ATR-007"
+      ],
+      "deliverables": [
+        "Library indicators for parse mode and content type",
+        "Document status details for OCR and parser failures",
+        "Source drawer support for richer provenance"
+      ],
+      "acceptance_criteria": [
+        "Users can see what kind of document processing happened",
+        "Failure states are visible without opening logs",
+        "Source drawer reflects richer parser metadata"
+      ],
+      "progress_notes": [
+        "The library drawer now shows parse-mode badges derived from parser and content-type summaries.",
+        "Document failure states are surfaced inline instead of being buried in generic metadata text.",
+        "Source traces now render richer provenance badges for parser, modality, chunk strategy, page, sheet, row range, and OCR source.",
+        "Validation passed through a frontend production build."
+      ],
+      "files": [
+        "frontend/components/app-shell.tsx",
+        "frontend/lib/api.ts",
+        "frontend/app/globals.css",
+        "backend/api/schemas.py"
+      ]
+    },
+    {
+      "id": "ATR-011",
+      "title": "PostgreSQL-ready chat history abstraction",
+      "status": "done",
+      "priority": "medium",
+      "phase": "persistence",
+      "summary": "Add a persistence seam for chat and project history so SQLite can be replaced cleanly later.",
+      "why": "This is part of the roadmap and should happen before SaaS auth and tenanting.",
+      "depends_on": [
+        "ATR-002"
+      ],
+      "deliverables": [
+        "History storage contract",
+        "SQLite adapter kept as current implementation",
+        "Postgres-ready interface"
+      ],
+      "acceptance_criteria": [
+        "rag_service no longer depends directly on SQLite-specific methods",
+        "Current project/session workflows still work",
+        "Postgres implementation can be added without another large service refactor"
+      ],
+      "progress_notes": [
+        "Introduced a HistoryStore protocol and factory in chat_history_db.py.",
+        "RAGApplication now depends on an injected history-store contract instead of constructing the SQLite class directly.",
+        "The current SQLite implementation remains the active adapter with no behavior change for project, session, or message flows.",
+        "Validation passed through Python compile checks and a temp-store smoke test."
+      ],
+      "files": [
+        "chat_history_db.py",
+        "backend/services/rag_service.py"
+      ]
+    },
+    {
+      "id": "ATR-012",
+      "title": "Graph retrieval decision gate",
+      "status": "done",
+      "priority": "medium",
+      "phase": "frontier",
+      "summary": "Decide whether graph retrieval is justified after parser and multimodal evaluation results exist.",
+      "why": "Graph retrieval is expensive complexity and should not be started without evidence.",
+      "depends_on": [
+        "ATR-009"
+      ],
+      "deliverables": [
+        "Decision memo based on evaluation results",
+        "Problem statement for graph-specific retrieval gaps",
+        "Prototype scope only if justified"
+      ],
+      "acceptance_criteria": [
+        "Evaluation identifies real unanswered cross-document problems",
+        "Graph retrieval is either approved with clear scope or explicitly deferred"
+      ],
+      "progress_notes": [
+        "The baseline retrieval harness, multimodal ingestion work, structured filters, and multimodal regression suite are now all in place.",
+        "Current evaluation evidence does not show a graph-shaped failure mode; the active bottlenecks are still parser coverage and larger enterprise corpora.",
+        "Graph retrieval is explicitly deferred until future evaluation proves relationship-heavy cases that standard retrieval, reranking, and metadata filtering cannot solve."
+      ],
+      "files": [
+        "ideas.md",
+        "decisions.md"
+      ]
+    }
+  ]
+}

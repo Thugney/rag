@@ -1,0 +1,98 @@
+{
+  "name": "repo-docs-baseline",
+  "description": "Sample retrieval benchmark against the current repository documentation.",
+  "corpus": [
+    {
+      "document_id": "readme",
+      "path": "../README.md",
+      "metadata": {
+        "authority_level": "high"
+      }
+    },
+    {
+      "document_id": "testing-guide",
+      "path": "../TESTING_GUIDE.md",
+      "metadata": {
+        "authority_level": "high"
+      }
+    },
+    {
+      "document_id": "technology-stack",
+      "path": "../TECHNOLOGY_STACK.md",
+      "metadata": {
+        "authority_level": "high"
+      }
+    },
+    {
+      "document_id": "ideas",
+      "path": "../ideas.md",
+      "metadata": {
+        "authority_level": "medium"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "query_id": "docker-stack",
+      "query": "How do I start the Docker dev stack and which ports does it use?",
+      "relevant_document_ids": [
+        "readme",
+        "testing-guide"
+      ],
+      "expected_answer_contains": [
+        "docker compose -f docker-compose.dev.yml up --build",
+        "3001",
+        "8001"
+      ]
+    },
+    {
+      "query_id": "project-workspace",
+      "query": "How are documents and chats grouped in the current product?",
+      "relevant_document_ids": [
+        "readme"
+      ],
+      "expected_answer_contains": [
+        "project",
+        "upload",
+        "chat"
+      ]
+    },
+    {
+      "query_id": "auth-roadmap",
+      "query": "What is the recommended next authentication path for this repo?",
+      "relevant_document_ids": [
+        "readme",
+        "technology-stack"
+      ],
+      "expected_answer_contains": [
+        "Supabase Auth",
+        "Postgres"
+      ]
+    },
+    {
+      "query_id": "retrieval-stack",
+      "query": "Which retrieval and model-provider techniques already exist in the active stack?",
+      "relevant_document_ids": [
+        "technology-stack",
+        "readme"
+      ],
+      "expected_answer_contains": [
+        "FAISS",
+        "BM25",
+        "DeepSeek"
+      ]
+    },
+    {
+      "query_id": "graph-roadmap",
+      "query": "What should happen before graph retrieval is attempted?",
+      "relevant_document_ids": [
+        "ideas"
+      ],
+      "expected_answer_contains": [
+        "evaluation",
+        "Qdrant",
+        "PostgreSQL"
+      ]
+    }
+  ]
+}
